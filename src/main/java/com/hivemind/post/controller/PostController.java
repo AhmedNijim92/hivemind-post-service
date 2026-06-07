@@ -37,6 +37,16 @@ public class PostController
         return ResponseEntity.ok(postService.getPostsByGroup(groupId));
     }
 
+    @GetMapping("/feed")
+    public ResponseEntity<List<PostDto>> getFeedByGroups(@RequestParam List<UUID> groupIds)
+    {
+        if (groupIds.size() > 20)
+        {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(postService.getPostsByGroups(groupIds));
+    }
+
     @GetMapping("/{groupId}/{postId}")
     public ResponseEntity<PostDto> getPostById(
             @PathVariable UUID groupId,

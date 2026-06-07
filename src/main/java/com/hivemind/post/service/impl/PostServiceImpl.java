@@ -77,6 +77,17 @@ public class PostServiceImpl implements IPostService
     }
 
     @Override
+    public List<PostDto> getPostsByGroups(List<UUID> groupIds)
+    {
+        // Fetch posts from each group partition and merge, sorted by createdAt descending
+        return groupIds.stream()
+                .flatMap(groupId -> postRepository.findByGroupId(groupId).stream())
+                .map(this::toDto)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void likePost(UUID groupId, UUID postId, UUID userId)
     {
         Post post = postRepository.findByGroupIdAndPostId(groupId, postId)

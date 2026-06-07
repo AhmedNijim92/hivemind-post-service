@@ -16,6 +16,9 @@ public interface IPostService
 
     List<PostDto> getPostsByGroup(UUID groupId);
 
+    /** Get posts from multiple groups for feed aggregation, sorted by creation time descending */
+    List<PostDto> getPostsByGroups(List<UUID> groupIds);
+
     void likePost(UUID groupId, UUID postId, UUID userId);
 
     Comment addComment(UUID groupId, UUID postId, UUID authorId, String authorName, AddCommentRequest request);
