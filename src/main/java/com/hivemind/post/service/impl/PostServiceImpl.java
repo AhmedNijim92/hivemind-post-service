@@ -6,7 +6,9 @@ import com.hivemind.post.dto.CreatePostRequest;
 import com.hivemind.post.dto.PostDto;
 import com.hivemind.post.entity.Comment;
 import com.hivemind.post.entity.Post;
+import com.hivemind.post.entity.PostLike;
 import com.hivemind.post.repository.CommentRepository;
+import com.hivemind.post.repository.PostLikeRepository;
 import com.hivemind.post.repository.PostRepository;
 import com.hivemind.post.service.IPostService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class PostServiceImpl implements IPostService
 {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final PostLikeRepository postLikeRepository;
     private final KafkaTemplate<String, PostCreatedEvent> kafkaTemplate;
 
     @Override
@@ -92,6 +95,22 @@ public class PostServiceImpl implements IPostService
     {
         Post post = postRepository.findByGroupIdAndPostId(groupId, postId)
                 .orElseThrow(() -> new RuntimeException("Post not found: " + postId));
+
+        // Check if already liked
+        if (postLikeRepository.findByPostIdAndUserId(postId, userId).isPresent())
+        {
+            throw new RuntimeException("Already liked this post");
+        }
+
+        // Record the like
+        PostLike like = PostLike.builder()
+                .postId(postId)
+                .userId(userId)
+                .createdAt(LocalDateTime.now())
+                .build();
+        postLikeRepository.save(like);
+
+        // Increment counter
         post.setLikeCount(post.getLikeCount() + 1);
         postRepository.save(post);
         log.info("Post {} liked by user {}", postId, userId);
